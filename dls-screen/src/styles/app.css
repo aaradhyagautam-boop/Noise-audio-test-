@@ -1,0 +1,226 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #e9e9e9;
+  display: flex;
+  justify-content: center;
+  padding: 24px;
+  font-family: var(--type-content-small-family);
+}
+
+/* Simulated device viewport (Status Bar symbol width = 390 in the DLS) */
+.device-frame {
+  width: 390px;
+  min-height: 844px;
+  background: #ffffff;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ============ Status Bar (Atom, L0) ============ */
+.statusbar {
+  height: 59px; /* DLS master symbol height */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  color: var(--color-default-status-bar);
+  flex: 0 0 auto;
+}
+.statusbar__time {
+  font-family: var(--type-subheading-card-family);
+  font-weight: 600;
+  font-size: 16px;
+}
+.statusbar__glyphs { display: flex; align-items: center; gap: 6px; }
+
+/* ============ L1 Inner Page Navigation (Organism, L1) ============ */
+/* Owns composition + layout only. Spans page width; back action present. */
+.l1-nav {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 6px 20px;
+  flex: 0 0 auto;
+}
+.l1-nav__back {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--color-icon-primary);
+  display: inline-flex;
+}
+
+/* ============ L2 Inner Page Heading (Molecule, L2) ============ */
+/* Content-driven height, min 56px, max 2 lines. */
+.l2-heading {
+  min-height: 56px;
+  padding: 8px 24px 16px;
+  display: flex;
+  align-items: flex-end;
+  flex: 0 0 auto;
+}
+.l2-heading__title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-family: var(--type-headings-medium-family);
+  font-weight: var(--type-headings-medium-weight);
+  font-size: var(--type-headings-medium-size);
+  line-height: var(--type-headings-medium-line);
+  text-transform: uppercase;
+  /* DLS: max 2 line content is supported */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============ Heading Content (Atom) ============ */
+/* Heading (required) + Supporting Content (optional). Owns its own rules. */
+.heading-content { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.heading-content__heading {
+  font-family: var(--type-subheading-card-family);
+  font-weight: var(--type-subheading-card-weight);
+  font-size: var(--type-subheading-card-size);
+  line-height: var(--type-subheading-card-line);
+  color: var(--color-text-primary);
+  /* DLS heading rule: maximum 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.heading-content__support {
+  font-family: var(--type-content-small-family);
+  font-weight: var(--type-content-small-weight);
+  font-size: var(--type-content-small-size);
+  line-height: var(--type-content-small-line);
+  color: var(--color-text-secondary);
+}
+/* Disabled rendering uses tertiary text (documented disabled colour). */
+.heading-content--disabled .heading-content__heading { color: var(--color-text-tertiary); }
+
+/* ============ Checkbox Card (Organism) — position=checkbox Left ============ */
+/* Parent owns composition + layout only; child rules stay with children. */
+.checkbox-card {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-l2-card);            /* Gaps/L2-Card Gap = 16 */
+  padding: var(--padding-top-bottom-small) 16px; /* 12px top/bottom */
+  width: 100%;
+}
+.checkbox-card__check { flex: 0 0 auto; }
+.checkbox-card__content { flex: 1 1 auto; min-width: 0; }
+.checkbox-card__cross {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--color-button-actionable-enabled); /* Cross atom actionable */
+  display: inline-flex;
+}
+
+/* Checkbox actionable molecule (in-scope as Checkbox Card's actionable) */
+.checkbox {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.checkbox--checked {
+  background: var(--color-button-checkbox-checked);
+  color: #ffffff;
+}
+.checkbox--unchecked {
+  background: transparent;
+  border: 2px solid var(--color-button-checkbox-unchecked);
+}
+
+/* Grouped-list parent frame — DLS Checkbox Card "Parent Frame Rules" */
+.device-list {
+  margin: 0 16px;
+  background: var(--color-background-surface);  /* surface token */
+  border-radius: var(--radius-card);            /* 18px */
+  padding-top: var(--padding-top-bottom-small); /* 12px */
+  padding-bottom: var(--padding-top-bottom-small);
+  /* "should not have any internal spacing between the elements" */
+}
+
+/* ===================================================================== */
+/* OUT-OF-REGISTRY surfaces (flagged; not one of the 5 DLS components).   */
+/* Built best-effort; reuse the in-scope Heading Content atom + tokens.   */
+/* ===================================================================== */
+
+/* "Dual Pairing" card = Master Card pattern + Toggle actionable [OOR] */
+.oor-pairing-card {
+  margin: 8px 16px 0;
+  background: var(--color-background-surface);
+  border-radius: var(--radius-card);
+  padding: var(--gap-l2-card);
+  display: flex;
+  align-items: center;
+  gap: var(--gap-l2-card);
+}
+.oor-pairing-card__content { flex: 1 1 auto; min-width: 0; }
+
+/* Toggle actionable [OOR — not documented in the 5-component registry] */
+.toggle {
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  flex: 0 0 auto;
+  transition: background 0.15s ease;
+}
+.toggle--on { background: var(--color-button-checkbox-checked); }
+.toggle--off { background: var(--color-button-checkbox-unchecked); }
+.toggle__knob {
+  position: absolute;
+  top: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: left 0.15s ease;
+}
+.toggle--on .toggle__knob { left: 21px; }
+.toggle--off .toggle__knob { left: 3px; }
+
+/* "MY DEVICES  1/2" list section header [OOR — not a documented component] */
+.oor-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 24px 12px;
+}
+.oor-section-header__label,
+.oor-section-header__count {
+  font-family: var(--type-content-small-family);
+  font-size: var(--type-content-small-size);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+/* Home indicator (OS chrome, not a DLS component) */
+.home-indicator {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 10px;
+}
+.home-indicator span {
+  width: 134px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-text-primary);
+}
