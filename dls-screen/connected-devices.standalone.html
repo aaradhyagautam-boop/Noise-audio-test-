@@ -9,9 +9,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Saira:wght@500;600&family=Geist:wght@400;600&display=swap" rel="stylesheet" />
 <style>
 /*
- * Self-contained recreation of the Connected Devices screen.
+ * Self-contained, INTERACTIVE recreation of the Connected Devices screen.
  * Tokens mirror the Noise Audio DLS (design-system-rules.md); none invented.
  * No build step / no server required — open this file directly in a browser.
+ *
+ * Wired actionables:
+ *  - Checkbox (Checkbox Card actionable): click to select/deselect.
+ *  - Toggle (Dual Pairing, OUT OF REGISTRY): click to flip on/off.
+ *  - Cross (Checkbox Card actionable): click to remove the row.
+ *  - "X/2" selection counter updates live; max 2 selected (per the "/2").
  */
 :root{
   /* Semantic Colors */
@@ -55,15 +61,22 @@ body{margin:0;background:#e9e9e9;display:flex;justify-content:center;padding:24p
 .heading-content{display:flex;flex-direction:column;gap:2px;min-width:0}
 .heading-content__heading{font-family:var(--type-subheading-card-family);font-weight:500;font-size:16px;line-height:1.1;color:var(--color-text-primary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .heading-content__support{font-family:var(--type-content-small-family);font-weight:400;font-size:12px;line-height:1.3;color:var(--color-text-secondary)}
-.heading-content--disabled .heading-content__heading{color:var(--color-text-tertiary)}
 
 /* Checkbox Card (Organism) — position=checkbox Left */
 .checkbox-card{display:flex;align-items:center;gap:var(--gap-l2-card);padding:var(--padding-top-bottom-small) 16px;width:100%}
-.checkbox-card__cross{flex:0 0 auto;background:none;border:none;padding:4px;cursor:pointer;color:var(--color-button-actionable-enabled);display:inline-flex}
 .checkbox-card__content{flex:1 1 auto;min-width:0}
-.checkbox{width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
-.checkbox--checked{background:var(--color-button-checkbox-checked);color:#fff}
-.checkbox--unchecked{background:transparent;border:2px solid var(--color-button-checkbox-unchecked)}
+.checkbox-card__cross{flex:0 0 auto;background:none;border:none;padding:4px;cursor:pointer;color:var(--color-button-actionable-enabled);display:inline-flex;border-radius:8px}
+
+/* Checkbox actionable — state driven by .is-selected on the card */
+.checkbox{width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:0;cursor:pointer;background:transparent;border:2px solid var(--color-button-checkbox-unchecked);transition:background .12s ease,border-color .12s ease}
+.checkbox__tick{display:none;color:#fff}
+.checkbox-card.is-selected .checkbox{background:var(--color-button-checkbox-checked);border-color:var(--color-button-checkbox-checked)}
+.checkbox-card.is-selected .checkbox__tick{display:block}
+/* Unselected rows render the heading in tertiary (matches the greyed mockup state) */
+.checkbox-card:not(.is-selected) .heading-content__heading{color:var(--color-text-tertiary)}
+
+/* focus-visible affordance for keyboard users */
+.checkbox:focus-visible,.checkbox-card__cross:focus-visible,.toggle:focus-visible,.l1-nav__back:focus-visible{outline:2px solid var(--color-text-primary);outline-offset:2px}
 
 /* Grouped-list parent frame — Checkbox Card Parent Frame Rules */
 .device-list{margin:0 16px;background:var(--color-background-surface);border-radius:var(--radius-card);padding-top:var(--padding-top-bottom-small);padding-bottom:var(--padding-top-bottom-small)}
@@ -71,12 +84,15 @@ body{margin:0;background:#e9e9e9;display:flex;justify-content:center;padding:24p
 /* OUT OF REGISTRY: Dual Pairing card (Master Card + Toggle) */
 .oor-pairing-card{margin:8px 16px 0;background:var(--color-background-surface);border-radius:var(--radius-card);padding:var(--gap-l2-card);display:flex;align-items:center;gap:var(--gap-l2-card)}
 .oor-pairing-card__content{flex:1 1 auto;min-width:0}
-.toggle{width:44px;height:26px;border-radius:999px;border:none;cursor:pointer;position:relative;flex:0 0 auto;background:var(--color-button-checkbox-checked)}
-.toggle__knob{position:absolute;top:3px;left:21px;width:20px;height:20px;border-radius:50%;background:#fff}
+.toggle{width:44px;height:26px;border-radius:999px;border:none;cursor:pointer;position:relative;flex:0 0 auto;background:var(--color-button-checkbox-unchecked);transition:background .15s ease}
+.toggle[aria-checked="true"]{background:var(--color-button-checkbox-checked)}
+.toggle__knob{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s ease}
+.toggle[aria-checked="true"] .toggle__knob{left:21px}
 
 /* OUT OF REGISTRY: list section header */
 .oor-section-header{display:flex;align-items:center;justify-content:space-between;padding:24px 24px 12px}
 .oor-section-header__label,.oor-section-header__count{font-family:var(--type-content-small-family);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-secondary)}
+.oor-section-header__count.is-at-capacity{color:var(--color-button-checkbox-checked);transition:color .15s ease}
 
 /* OS chrome */
 .home-indicator{margin-top:auto;display:flex;justify-content:center;padding:8px 0 10px}
@@ -102,7 +118,7 @@ body{margin:0;background:#e9e9e9;display:flex;justify-content:center;padding:24p
 
   <!-- L1 Inner Page Navigation (Type=No icon) -->
   <nav class="l1-nav" aria-label="Page navigation">
-    <button class="l1-nav__back" aria-label="Back">
+    <button class="l1-nav__back" aria-label="Back" type="button">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
   </nav>
@@ -118,57 +134,132 @@ body{margin:0;background:#e9e9e9;display:flex;justify-content:center;padding:24p
         <span class="heading-content__support">Your buds can connect to 2 devices at a time.</span>
       </div>
     </div>
-    <button class="toggle" role="switch" aria-checked="true" aria-label="Dual pairing"><span class="toggle__knob"></span></button>
+    <button class="toggle" type="button" role="switch" aria-checked="true" aria-label="Dual pairing"><span class="toggle__knob"></span></button>
   </div>
 
   <!-- [OUT OF REGISTRY] section header -->
   <div class="oor-section-header" data-out-of-registry="true">
     <span class="oor-section-header__label">My Devices</span>
-    <span class="oor-section-header__count">1/2</span>
+    <span class="oor-section-header__count" data-count>1/2</span>
   </div>
 
   <!-- Grouped-list parent frame of Checkbox Cards (position=checkbox Left) -->
   <div class="device-list" role="list">
 
-    <div role="listitem"><div class="checkbox-card">
-      <span class="checkbox checkbox--checked"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5L10 17.5L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <div role="listitem"><div class="checkbox-card is-selected">
+      <button class="checkbox" type="button" aria-pressed="true" aria-label="Select device"><svg class="checkbox__tick" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5L10 17.5L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <div class="checkbox-card__content"><div class="heading-content"><span class="heading-content__heading">Manas's iPhone</span><span class="heading-content__support">Current Device</span></div></div>
-      <button class="checkbox-card__cross" aria-label="Remove device"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="checkbox-card__cross" type="button" aria-label="Remove device"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     </div></div>
 
     <div role="listitem"><div class="checkbox-card">
-      <span class="checkbox checkbox--unchecked"></span>
-      <div class="checkbox-card__content"><div class="heading-content heading-content--disabled"><span class="heading-content__heading">Manas's iPhone</span></div></div>
-      <button class="checkbox-card__cross" aria-label="Remove device" disabled><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="checkbox" type="button" aria-pressed="false" aria-label="Select device"><svg class="checkbox__tick" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5L10 17.5L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="checkbox-card__content"><div class="heading-content"><span class="heading-content__heading">Manas's iPhone</span></div></div>
+      <button class="checkbox-card__cross" type="button" aria-label="Remove device"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     </div></div>
 
     <div role="listitem"><div class="checkbox-card">
-      <span class="checkbox checkbox--unchecked"></span>
-      <div class="checkbox-card__content"><div class="heading-content heading-content--disabled"><span class="heading-content__heading">Manas's iPhone</span></div></div>
-      <button class="checkbox-card__cross" aria-label="Remove device" disabled><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="checkbox" type="button" aria-pressed="false" aria-label="Select device"><svg class="checkbox__tick" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5L10 17.5L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="checkbox-card__content"><div class="heading-content"><span class="heading-content__heading">Manas's iPhone</span></div></div>
+      <button class="checkbox-card__cross" type="button" aria-label="Remove device"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     </div></div>
 
     <div role="listitem"><div class="checkbox-card">
-      <span class="checkbox checkbox--unchecked"></span>
-      <div class="checkbox-card__content"><div class="heading-content heading-content--disabled"><span class="heading-content__heading">Manas's iPhone</span></div></div>
-      <button class="checkbox-card__cross" aria-label="Remove device" disabled><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="checkbox" type="button" aria-pressed="false" aria-label="Select device"><svg class="checkbox__tick" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5L10 17.5L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="checkbox-card__content"><div class="heading-content"><span class="heading-content__heading">Manas's iPhone</span></div></div>
+      <button class="checkbox-card__cross" type="button" aria-label="Remove device"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     </div></div>
 
     <div role="listitem"><div class="checkbox-card">
-      <span class="checkbox checkbox--unchecked"></span>
-      <div class="checkbox-card__content"><div class="heading-content heading-content--disabled"><span class="heading-content__heading">Manas's iPhone</span></div></div>
-      <button class="checkbox-card__cross" aria-label="Remove device" disabled><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="checkbox" type="button" aria-pressed="false" aria-label="Select device"><svg class="checkbox__tick" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5L10 17.5L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="checkbox-card__content"><div class="heading-content"><span class="heading-content__heading">Manas's iPhone</span></div></div>
+      <button class="checkbox-card__cross" type="button" aria-label="Remove device"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     </div></div>
 
     <div role="listitem"><div class="checkbox-card">
-      <span class="checkbox checkbox--unchecked"></span>
-      <div class="checkbox-card__content"><div class="heading-content heading-content--disabled"><span class="heading-content__heading">Manas's iPhone</span></div></div>
-      <button class="checkbox-card__cross" aria-label="Remove device" disabled><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="checkbox" type="button" aria-pressed="false" aria-label="Select device"><svg class="checkbox__tick" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12.5L10 17.5L19 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <div class="checkbox-card__content"><div class="heading-content"><span class="heading-content__heading">Manas's iPhone</span></div></div>
+      <button class="checkbox-card__cross" type="button" aria-label="Remove device"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
     </div></div>
 
   </div>
 
   <div class="home-indicator"><span></span></div>
 </div>
+
+<script>
+(function () {
+  'use strict';
+  // Max selectable devices is derived from the "/2" denominator in the counter.
+  var MAX_SELECTED = 2;
+  var countEl = document.querySelector('[data-count]');
+
+  function selectedCount() {
+    return document.querySelectorAll('.checkbox-card.is-selected').length;
+  }
+
+  function refreshCounter() {
+    var n = selectedCount();
+    if (countEl) {
+      countEl.textContent = n + '/' + MAX_SELECTED;
+      countEl.classList.toggle('is-at-capacity', n >= MAX_SELECTED);
+    }
+  }
+
+  function setSelected(card, selected) {
+    card.classList.toggle('is-selected', selected);
+    var cb = card.querySelector('.checkbox');
+    if (cb) cb.setAttribute('aria-pressed', String(selected));
+  }
+
+  // Checkbox actionable: select / deselect, honouring the 2-device cap.
+  function onCheckboxClick(card) {
+    var isSelected = card.classList.contains('is-selected');
+    if (!isSelected && selectedCount() >= MAX_SELECTED) {
+      // At capacity — briefly flag the counter instead of selecting a 3rd.
+      if (countEl) {
+        countEl.classList.add('is-at-capacity');
+        countEl.animate(
+          [{ transform: 'translateX(0)' }, { transform: 'translateX(3px)' },
+           { transform: 'translateX(-3px)' }, { transform: 'translateX(0)' }],
+          { duration: 180 }
+        );
+      }
+      return;
+    }
+    setSelected(card, !isSelected);
+    refreshCounter();
+  }
+
+  // Cross actionable: remove the row from the list.
+  function onCrossClick(card) {
+    var item = card.closest('[role="listitem"]');
+    if (item) item.remove();
+    refreshCounter();
+  }
+
+  document.querySelectorAll('.checkbox-card').forEach(function (card) {
+    var cb = card.querySelector('.checkbox');
+    var cross = card.querySelector('.checkbox-card__cross');
+    if (cb) cb.addEventListener('click', function () { onCheckboxClick(card); });
+    if (cross) cross.addEventListener('click', function () { onCrossClick(card); });
+  });
+
+  // Toggle actionable (Dual Pairing).
+  var toggle = document.querySelector('.toggle');
+  if (toggle) {
+    toggle.addEventListener('click', function () {
+      var on = toggle.getAttribute('aria-checked') === 'true';
+      toggle.setAttribute('aria-checked', String(!on));
+    });
+  }
+
+  // Back button — inert in this static preview.
+  var back = document.querySelector('.l1-nav__back');
+  if (back) back.addEventListener('click', function (e) { e.preventDefault(); });
+
+  refreshCounter();
+})();
+</script>
 </body>
 </html>
