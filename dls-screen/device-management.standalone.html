@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Manage Devices — Noise Audio DLS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@500;600&family=Geist:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+/*
+ * Device Management screen — built with ONLY the 5 documented DLS components.
+ *   Status Bar · L1 Inner Page Navigation · L2 Inner Page Heading ·
+ *   Heading Content · Checkbox Card (position=checkbox Right).
+ *
+ * On/Off control = the Checkbox Card's checkbox actionable (the library has no
+ * Toggle component, and Checkbox Card must not use a toggle). Checked = On.
+ * Tokens mirror design-system-rules.md; none invented. No build/server needed.
+ */
+:root{
+  --color-text-primary:#454545;            /* text/primary */
+  --color-text-secondary:#919191;          /* text/secondary */
+  --color-text-tertiary:#b5b5b5;           /* text/tertiary */
+  --color-icon-primary:#454545;            /* icon/primary */
+  --color-icon-green:#2ea864;              /* icon/green */
+  --color-button-checkbox-checked:#171717; /* button/checkbox/checked */
+  --color-button-checkbox-unchecked:#b5b5b5; /* button/checkbox/unchecked */
+  --color-background-surface:#f7f7f7;      /* background/surface */
+  --color-default-status-bar:#000000;      /* default/status bar */
+  --gap-l2-card:16px;                       /* Gaps/L2-Card Gap */
+  --padding-top-bottom-small:12px;          /* Padding/top, bottom padding small */
+  --radius-card:18px;                       /* Radius/Card */
+  --type-headings-medium-family:'Saira',sans-serif; /* 👄 Headings/Medium */
+  --type-subheading-card-family:'Saira',sans-serif; /* Sub Headings/card headings */
+  --type-content-small-family:'Geist',sans-serif;   /* Content/Small */
+}
+*{box-sizing:border-box}
+body{margin:0;background:#e9e9e9;display:flex;justify-content:center;padding:24px;font-family:var(--type-content-small-family)}
+.device-frame{width:390px;min-height:844px;background:#fff;position:relative;display:flex;flex-direction:column;overflow:hidden}
+
+/* Status Bar (Atom, L0) */
+.statusbar{height:59px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:var(--color-default-status-bar);flex:0 0 auto}
+.statusbar__time{font-family:var(--type-subheading-card-family);font-weight:600;font-size:16px}
+.statusbar__glyphs{display:flex;align-items:center;gap:6px}
+
+/* L1 Inner Page Navigation (Organism, L1) — Type=No icon */
+.l1-nav{display:flex;align-items:center;width:100%;padding:6px 20px;flex:0 0 auto}
+.l1-nav__back{background:none;border:none;padding:4px;cursor:pointer;color:var(--color-icon-primary);display:inline-flex;border-radius:8px}
+
+/* L2 Inner Page Heading (Molecule, L2) */
+.l2-heading{min-height:56px;padding:8px 24px 4px;display:flex;align-items:flex-end;flex:0 0 auto}
+.l2-heading__title{margin:0;color:var(--color-text-primary);font-family:var(--type-headings-medium-family);font-weight:600;font-size:34px;line-height:1.1;text-transform:uppercase;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Heading Content (Atom) */
+.heading-content{display:flex;flex-direction:column;gap:2px;min-width:0}
+.heading-content__heading{font-family:var(--type-subheading-card-family);font-weight:500;font-size:16px;line-height:1.1;color:var(--color-text-primary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.heading-content__support{font-family:var(--type-content-small-family);font-weight:400;font-size:12px;line-height:1.3;color:var(--color-text-secondary)}
+
+/* Heading Content used standalone as a section introduction (documented usage) */
+.section-intro{padding:16px 24px 12px}
+
+/* Checkbox Card (Organism) — position=checkbox Right */
+/* checkbox Right contents: Heading Content (left) + Checkbox Actionable (right). No cross. */
+.checkbox-card{display:flex;align-items:center;gap:var(--gap-l2-card);padding:var(--padding-top-bottom-small) 16px;width:100%}
+.checkbox-card__content{flex:1 1 auto;min-width:0}
+
+/* Checkbox actionable — state driven by .is-on on the card. Checked = device On. */
+.checkbox{width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:0;cursor:pointer;background:transparent;border:2px solid var(--color-button-checkbox-unchecked);transition:background .12s ease,border-color .12s ease}
+.checkbox__tick{display:none;color:#fff}
+.checkbox-card.is-on .checkbox{background:var(--color-button-checkbox-checked);border-color:var(--color-button-checkbox-checked)}
+.checkbox-card.is-on .checkbox__tick{display:block}
+/* Off devices render the heading in tertiary to signal the inactive state */
+.checkbox-card:not(.is-on) .heading-content__heading{color:var(--color-text-tertiary)}
+.checkbox:focus-visible,.l1-nav__back:focus-visible{outline:2px solid var(--color-text-primary);outline-offset:2px}
+
+/* "On" supporting text picks up the green status colour token */
+.heading-content__support.is-connected{color:var(--color-icon-green)}
+
+/* Grouped-list parent frame — Checkbox Card Parent Frame Rules */
+.device-list{margin:0 16px;background:var(--color-background-surface);border-radius:var(--radius-card);padding-top:var(--padding-top-bottom-small);padding-bottom:var(--padding-top-bottom-small)}
+
+/* OS chrome */
+.home-indicator{margin-top:auto;display:flex;justify-content:center;padding:8px 0 10px}
+.home-indicator span{width:134px;height:5px;border-radius:999px;background:var(--color-text-primary)}
+</style>
+</head>
+<body>
+<div class="device-frame">
+
+  <!-- Status Bar (Atom, L0) -->
+  <div class="statusbar">
+    <span class="statusbar__time">9:41</span>
+    <span class="statusbar__glyphs">
+      <svg width="68" height="12" viewBox="0 0 68 12" fill="currentColor">
+        <rect x="0" y="6" width="3" height="6" rx="1"/><rect x="5" y="4" width="3" height="8" rx="1"/>
+        <rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/>
+        <path d="M24 4c3-3 8-3 11 0l-1.4 1.4c-2.2-2.2-6-2.2-8.2 0L24 4zm2.6 2.6c1.6-1.6 4.2-1.6 5.8 0L31 8c-.8-.8-2.2-.8-3 0l-1.4-1.4zM28 9l1.5 1.5L31 9c-.8-.8-2.2-.8-3 0z"/>
+        <rect x="46" y="1" width="20" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+        <rect x="47.5" y="2.5" width="16" height="7" rx="1.5"/><rect x="67" y="4" width="1.5" height="4" rx="0.75" opacity="0.6"/>
+      </svg>
+    </span>
+  </div>
+
+  <!-- L1 Inner Page Navigation (Type=No icon) -->
+  <nav class="l1-nav" aria-label="Page navigation">
+    <button class="l1-nav__back" aria-label="Back" type="button">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </nav>
+
+  <!-- L2 Inner Page Heading -->
+  <header class="l2-heading"><h1 class="l2-heading__title">Manage Devices</h1></header>
+
+  <!-- Heading Content (Atom) — non-actionable section introduction -->
+  <div class="section-intro">
+    <div class="heading-content">
+      <span class="heading-content__heading">Your Devices</span>
+      <span class="heading-content__support">Turn a device on to connect it to your buds.</span>
+    </div>
+  </div>
+
+  <!-- Grouped-list parent frame of Checkbox Cards (position=checkbox Right) -->
+  <div class="device-list" role="list" id="deviceList"></div>
+
+  <div class="home-indicator"><span></span></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Device state — each toggles independently (no cap; this is on/off, not pairing).
+  var devices = [
+    { id: 'iphone',  name: "iPhone 15 Pro", on: true  },
+    { id: 'macbook', name: "MacBook Air",   on: true  },
+    { id: 'ipad',    name: "iPad Pro",      on: false },
+    { id: 'galaxy',  name: "Galaxy S24",    on: false },
+    { id: 'watch',   name: "Apple Watch",   on: false }
+  ];
+
+  var TICK = '<svg class="checkbox__tick" width="16" height="16" viewBox="0 0 24 24" fill="none">'
+    + '<path d="M5 12.5L10 17.5L19 7" stroke="currentColor" stroke-width="2.5" '
+    + 'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  var list = document.getElementById('deviceList');
+
+  function supportText(on) { return on ? 'Connected' : 'Off'; }
+
+  function render() {
+    list.innerHTML = '';
+    devices.forEach(function (d) {
+      // Checkbox Card — position=checkbox Right: Heading Content (left) + Checkbox (right).
+      var item = document.createElement('div');
+      item.setAttribute('role', 'listitem');
+
+      var card = document.createElement('div');
+      card.className = 'checkbox-card' + (d.on ? ' is-on' : '');
+
+      var content = document.createElement('div');
+      content.className = 'checkbox-card__content';
+      content.innerHTML =
+        '<div class="heading-content">' +
+          '<span class="heading-content__heading">' + d.name + '</span>' +
+          '<span class="heading-content__support' + (d.on ? ' is-connected' : '') + '">' +
+            supportText(d.on) +
+          '</span>' +
+        '</div>';
+
+      var cb = document.createElement('button');
+      cb.type = 'button';
+      cb.className = 'checkbox';
+      cb.setAttribute('role', 'switch');
+      cb.setAttribute('aria-checked', String(d.on));
+      cb.setAttribute('aria-label', d.name + (d.on ? ' (on)' : ' (off)'));
+      cb.innerHTML = TICK;
+      cb.addEventListener('click', function () {
+        d.on = !d.on;
+        render();
+      });
+
+      card.appendChild(content);
+      card.appendChild(cb);
+      item.appendChild(card);
+      list.appendChild(item);
+    });
+  }
+
+  var back = document.querySelector('.l1-nav__back');
+  if (back) back.addEventListener('click', function (e) { e.preventDefault(); });
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -103,6 +103,8 @@ body {
 }
 /* Disabled rendering uses tertiary text (documented disabled colour). */
 .heading-content--disabled .heading-content__heading { color: var(--color-text-tertiary); }
+/* "On/connected" supporting text uses the green status token. */
+.heading-content__support--connected { color: var(--color-icon-green); }
 
 /* ============ Checkbox Card (Organism) — position=checkbox Left ============ */
 /* Parent owns composition + layout only; child rules stay with children. */
@@ -142,6 +144,15 @@ body {
   background: transparent;
   border: 2px solid var(--color-button-checkbox-unchecked);
 }
+
+/* position=checkbox Right: Heading Content (left) + Checkbox (right), no cross.
+   Off devices render the heading in tertiary to signal the inactive state. */
+.checkbox-card--right.checkbox-card:not(.is-checked) .heading-content__heading {
+  color: var(--color-text-tertiary);
+}
+
+/* Heading Content used standalone as a section introduction (documented usage) */
+.section-intro { padding: 16px 24px 12px; }
 
 /* Grouped-list parent frame — DLS Checkbox Card "Parent Frame Rules" */
 .device-list {

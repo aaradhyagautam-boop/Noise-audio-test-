@@ -4,16 +4,18 @@ import { Check, Cross } from './icons.jsx'
 /**
  * Checkbox Card — DLS Organism. Figma node 894:6129.
  *
- * VARIANT: `position=checkbox Left`
- *   documented contents → Checkbox Actionable Molecule + Heading Content Atom + Cross Atom.
+ * Documented variants (property `position`):
+ *   - `checkbox Left`  → Checkbox Actionable + Heading Content + Cross Atom.
+ *                        Use when items can be selected and independently removed.
+ *   - `checkbox Right` → Heading Content + Checkbox Actionable (no Cross).
+ *                        Use when item selection is the only required action.
  *
- * Parent OWNS composition + layout only. Child rules stay with children:
- *  - The Heading Content limits live in HeadingContent (not here).
- *  - The checkbox + cross behaviours are their own actionables.
+ * Parent OWNS composition + layout only. Child rules stay with children
+ * (the Heading Content content limits live in HeadingContent, not here).
  *
  * DLS list rules (enforced by the grouped-list parent frame in the screen):
- *  - Must always exist within a list; never an isolated card.
- *  - Multiple items grouped inside a parent frame.
+ *   - Must always exist within a list; never an isolated card.
+ *   - Multiple items grouped inside a parent frame.
  *
  * Tokens: button/checkbox/checked, button/checkbox/unchecked,
  *         button/actionable/enabled (cross), Gaps/L2-Card Gap, Padding 12.
@@ -21,42 +23,66 @@ import { Check, Cross } from './icons.jsx'
 export default function CheckboxCard({
   heading,
   support,
+  supportTone = 'default',
   checked = false,
   disabled = false,
+  position = 'left', // 'left' (with Cross) | 'right' (selection only)
   onToggle,
   onRemove,
 }) {
-  return (
-    <div className="checkbox-card">
-      {/* Checkbox actionable molecule (left) */}
-      <span className="checkbox-card__check">
-        <button
-          type="button"
-          className={`checkbox ${checked ? 'checkbox--checked' : 'checkbox--unchecked'}`}
-          aria-pressed={checked}
-          aria-label={checked ? 'Selected' : 'Not selected'}
-          disabled={disabled}
-          onClick={onToggle}
-        >
-          {checked ? <Check /> : null}
-        </button>
-      </span>
+  const rootClass =
+    'checkbox-card' +
+    ` checkbox-card--${position}` +
+    (checked ? ' is-checked' : '') +
+    (disabled ? ' is-disabled' : '')
 
-      {/* Heading Content atom (centre) */}
-      <div className="checkbox-card__content">
-        <HeadingContent heading={heading} support={support} disabled={disabled} />
-      </div>
+  const checkbox = (
+    <button
+      type="button"
+      className={`checkbox ${checked ? 'checkbox--checked' : 'checkbox--unchecked'}`}
+      role="switch"
+      aria-checked={checked}
+      aria-label={checked ? 'On' : 'Off'}
+      disabled={disabled}
+      onClick={onToggle}
+    >
+      {checked ? <Check /> : null}
+    </button>
+  )
 
-      {/* Cross atom (right) */}
-      <button
-        type="button"
-        className="checkbox-card__cross"
-        aria-label="Remove device"
+  const content = (
+    <div className="checkbox-card__content">
+      <HeadingContent
+        heading={heading}
+        support={support}
+        supportTone={supportTone}
         disabled={disabled}
-        onClick={onRemove}
-      >
-        <Cross />
-      </button>
+      />
+    </div>
+  )
+
+  return (
+    <div className={rootClass}>
+      {position === 'left' ? (
+        <>
+          <span className="checkbox-card__check">{checkbox}</span>
+          {content}
+          <button
+            type="button"
+            className="checkbox-card__cross"
+            aria-label="Remove device"
+            disabled={disabled}
+            onClick={onRemove}
+          >
+            <Cross />
+          </button>
+        </>
+      ) : (
+        <>
+          {content}
+          {checkbox}
+        </>
+      )}
     </div>
   )
 }
